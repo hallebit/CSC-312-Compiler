@@ -25,5 +25,3 @@ DIFF=$(diff tstOutput tstExpected)
 if [ "$DIFF" != "" ]; then 
     exit -1
 fi
-    
-
