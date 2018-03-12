@@ -1,6 +1,12 @@
 #!/bin/bash
 
-# Citation: https://www.unr.edu/it/research-resources/the-grid/using-the-grid/bash-commands 
+# General Testing Citation: https://www.unr.edu/it/research-resources/the-grid/using-the-grid/bash-commands 
+
+# General Compilation Citation: https://stackoverflow.com/questions/11616835/r-command-not-found-bashrc-bash-profile  
+# If test.sh does not run due to an error message like this
+#              -bash '\r': command not found
+# consider running the dos2unix command on test.sh
+# Windows style newline characters can cause issues in Cygwin
 
 ./read foo bar baz           > tstOutput
 ./read " " 42 'h'            >> tstOutput
