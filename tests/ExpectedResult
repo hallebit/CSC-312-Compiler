@@ -1,0 +1,17 @@
+256
+5
+Fatal error: exception Failure("Dividing by zero is bad")
+Fatal error: exception Failure("Dividing by zero is bad")
+24
+-2
+-9
+-2
+-15
+-12
+22
+Fatal error: exception Failure("Unexpected end of file encountered")
+70
+Fatal error: exception Failure("Unexpected end of file encountered")
+Fatal error: exception Failure("Unexpected token found: -")
+Fatal error: exception Failure("Unexpected token found: +")
+Fatal error: exception Failure("Unexpected character found: %")
