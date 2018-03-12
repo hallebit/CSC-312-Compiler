@@ -2,27 +2,27 @@
 
 # Citation: https://www.unr.edu/it/research-resources/the-grid/using-the-grid/bash-commands 
 
-./bareBonesProj foo bar baz           > tstOutput
-./bareBonesProj " " 42 'h'            >> tstOutput
-./bareBonesProj                       >> tstOutput
-./bareBonesProj help                  >> tstOutput
-./bareBonesProj -help                 >> tstOutput
-./bareBonesProj --help                >> tstOutput
-./bareBonesProj -help great           >> tstOutput
-./bareBonesProj great -help           >> tstOutput
-./bareBonesProj -length foo bar baz   >> tstOutput
-./bareBonesProj -length " " 42 'h'    >> tstOutput
-./bareBonesProj -length               >> tstOutput
-./bareBonesProj -length help          >> tstOutput
-./bareBonesProj great -length         >> tstOutput
-./bareBonesProj great -length great   >> tstOutput
-./bareBonesProj -length -length great >> tstOutput
+./read foo bar baz           > tstOutput
+./read " " 42 'h'            >> tstOutput
+./read                       >> tstOutput
+./read help                  >> tstOutput
+./read -help                 >> tstOutput
+./read --help                >> tstOutput
+./read -help great           >> tstOutput
+./read great -help           >> tstOutput
+./read -length foo bar baz   >> tstOutput
+./read -length " " 42 'h'    >> tstOutput
+./read -length               >> tstOutput
+./read -length help          >> tstOutput
+./read great -length         >> tstOutput
+./read great -length great   >> tstOutput
+./read -length -length great >> tstOutput
 
 #Citation: https://stackoverflow.com/questions/3611846/bash-using-the-result-of-a-diff-in-a-if-statement
 #Citation: https://unix.stackexchange.com/questions/81998/understanding-of-diff-output
 
 DIFF=$(diff tstOutput tstExpected)
-if [[ "$DIFF" != "" ]]; then 
+if [ "$DIFF" != "" ]; then 
     exit -1
 fi
     
