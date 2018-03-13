@@ -42,28 +42,37 @@ let rec parse (toks:token list) : (exp * token list) =
     failwith "Unexpected end of token stream"
   else  
     match peek toks with
-    | TInt n -> (EInt n, advance toks)
+    | TInt n  -> (EInt n, advance toks)
+    | TBool b -> (EBool b, advance toks)
     | TLParen -> begin
       let toks        = consume TLParen toks in
       let operator    = peek toks in
-      let toks        = (match operator with
+      let toks        = match operator with
+                        | TIf     -> consume TIf      toks
                         | TLeq    -> consume TLeq     toks
                         | TPlus   -> consume TPlus    toks
                         | TMinus  -> consume TMinus   toks
-                        | TMulti  -> consume TMulti   toks 
+                        | TMulti  -> consume TMulti   toks
                         | TDivide -> consume TDivide  toks
-                        | t       -> failwith (Printf.sprintf "Unexpected operation token found: %s" (string_of_token t)))
+                        | t       -> failwith (Printf.sprintf "Unexpected operation token found: %s" (string_of_token t))
       in
-      let (e1, toks)  = parse toks in
-      let (e2, toks)  = parse toks in
-      let toks        = consume TRParen toks in
-      (match operator with
-      | TLeq    -> (ELeqInt   (e1, e2), toks)
-      | TPlus   -> (EAddInt   (e1, e2), toks)
-      | TMinus  -> (ESubInt   (e1, e2), toks)
-      | TMulti  -> (EMultiInt (e1, e2), toks)
-      | TDivide -> (EDivInt   (e1, e2), toks)
-      | t       -> failwith (Printf.sprintf "Unexpected operation token found: %s" (string_of_token t)))
+      if operator = TIf then
+        let (e1, toks) = parse toks in
+        let (e2, toks) = parse toks in
+        let (e3, toks) = parse toks in 
+        let toks       = consume TRParen toks in
+        (EIf (e1, e2, e3), toks)
+      else 
+        let (e1, toks) = parse toks in
+        let (e2, toks) = parse toks in 
+        let toks       = consume TRParen toks in
+        match operator with
+        | TLeq    -> (ELeqInt     (e1, e2), toks);
+        | TPlus   -> (EAddInt     (e1, e2), toks);
+        | TMinus  -> (ESubInt     (e1, e2), toks);
+        | TMulti  -> (EMultiInt   (e1, e2), toks);
+        | TDivide -> (EDivInt  (e1, e2), toks);
+        | t       -> failwith (Printf.sprintf "Unexpected operation token found: %s" (string_of_token t))
     end
     | t -> failwith (Printf.sprintf "Unexpected token found: %s" (string_of_token t))
 

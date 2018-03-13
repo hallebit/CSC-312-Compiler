@@ -19,11 +19,12 @@ type value =
 type exp = 
   | EInt       of int 
   | EBool      of bool 
-  | ELeqInt    of exp * exp     (*Integer Comparison: Less-than-or-equals*)
-  | EAddInt    of exp * exp     (*Integer Addtion*)
-  | ESubInt    of exp * exp     (*Integer Subtraction*)
-  | EMultiInt  of exp * exp     (*Integer Multiplication*) 
-  | EDivInt    of exp * exp     (*Integer Division*) 
+  | EIf        of exp * exp * exp (*If Statment*)
+  | ELeqInt    of exp * exp       (*Integer Comparison: Less-than-or-equals*)
+  | EAddInt    of exp * exp       (*Integer Addtion*)
+  | ESubInt    of exp * exp       (*Integer Subtraction*)
+  | EMultiInt  of exp * exp       (*Integer Multiplication*) 
+  | EDivInt    of exp * exp       (*Integer Division*) 
 
 let value_of_int  (n:int)  : value = VInt n
 let value_of_bool (b:bool) : value = VBool b
@@ -38,13 +39,14 @@ let bool_of_value (v:value): bool =
 
 let rec interpret (e:exp) : value =
   match e with
-  | EInt n             -> VInt n  
-  | EBool b            -> VBool b
-  | ELeqInt   (e1, e2) -> value_of_bool(int_of_value (interpret e1) <= int_of_value (interpret e2))
-  | EAddInt   (e1, e2) -> value_of_int(int_of_value (interpret e1) + int_of_value (interpret e2))
-  | ESubInt   (e1, e2) -> value_of_int(int_of_value (interpret e1) - int_of_value (interpret e2))
-  | EMultiInt (e1, e2) -> value_of_int(int_of_value (interpret e1) * int_of_value (interpret e2))
-  | EDivInt   (e1, e2) -> let denominator = int_of_value(interpret e2) in
+  | EInt n                -> VInt n  
+  | EBool b               -> VBool b
+  | EIf       (e1, e2, e3)-> if bool_of_value (interpret e1) then (interpret e2) else (interpret e3)
+  | ELeqInt   (e1, e2)    -> value_of_bool(int_of_value (interpret e1) <= int_of_value (interpret e2))
+  | EAddInt   (e1, e2)    -> value_of_int(int_of_value (interpret e1) + int_of_value (interpret e2))
+  | ESubInt   (e1, e2)    -> value_of_int(int_of_value (interpret e1) - int_of_value (interpret e2))
+  | EMultiInt (e1, e2)    -> value_of_int(int_of_value (interpret e1) * int_of_value (interpret e2))
+  | EDivInt   (e1, e2)    -> let denominator = int_of_value(interpret e2) in
                               if denominator != 0 then
                               value_of_int(int_of_value (interpret e1) / denominator)
                               else 

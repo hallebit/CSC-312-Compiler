@@ -18,6 +18,7 @@ type token =
   | TBool of bool
   | TLParen
   | TRParen
+  | TIf
   | TLeq
   | TPlus
   | TMinus
@@ -30,13 +31,14 @@ let string_of_token (t:token) : string =
   | TBool b -> string_of_bool b 
   | TLParen -> "("
   | TRParen -> ")"
+  | TIf     -> "if"
   | TLeq    -> "<="
   | TPlus   -> "+"
   | TMinus  -> "-"
   | TMulti  -> "*"
   | TDivide -> "/"
 
-let keywords = [("true", TBool true); ("false", TBool false); ("<=", TLeq)]
+let keywords = [("true", TBool true); ("false", TBool false); ("if", TIf); ("<=", TLeq)]
 
 let string_of_token_list (toks:token list) : string =
   (* Note that String.concat sep sl concatenates the list of strings
@@ -98,7 +100,7 @@ let lex (src:char Stream.t) : token list =
         | '-' -> advance src |> ignore; TMinus  :: go ()
         | '*' -> advance src |> ignore; TMulti  :: go ()
         | '/' -> advance src |> ignore; TDivide :: go ()
-        | _   ->
+        | _   -> begin
           if is_whitespace ch then
             begin advance src |> ignore; go () end
           else if is_digit ch then
@@ -109,6 +111,7 @@ let lex (src:char Stream.t) : token list =
             List.assoc key keywords :: go ()
           else
             failwith (Printf.sprintf "Unexpected character found: %c" ch)
+        end
     else 
       []
     in 
