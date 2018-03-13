@@ -2,7 +2,9 @@
 
 # Citation: https://www.unr.edu/it/research-resources/the-grid/using-the-grid/bash-commands 
 
-./compiler ../tests/testIntAdd                              >   ../tests/OutputResult                  
+# Fatal error: exception Failure("Unexpected end of file encountered")                  Do I want this behavior?
+./compiler ../tests/testBoolOnly                            &> ../tests/OutputResult
+./compiler ../tests/testIntAdd                              >>   ../tests/OutputResult                  
 # Fatal error: exception Failure("Unexpected token found: false")
 ./compiler ../tests/testIntAddBoolean                       &>> ../tests/OutputResult                  
 # Fatal error: exception Failure("Unexpected token found: true")
@@ -19,8 +21,6 @@
 ./compiler ../tests/testIntLeqNonNumericInput               &>> ../tests/OutputResult
 ./compiler ../tests/testIntLeqTrue                          >>  ../tests/OutputResult
 ./compiler ../tests/testIntLeqTrueEqual                     >>  ../tests/OutputResult
-
-
 ./compiler ../tests/testIntMultiply                         >>  ../tests/OutputResult
 ./compiler ../tests/testIntNegativeNestedOps                >>  ../tests/OutputResult
 ./compiler ../tests/testIntNegativeResultAdd                >>  ../tests/OutputResult
