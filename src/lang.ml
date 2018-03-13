@@ -12,32 +12,41 @@
  *    Professor Peter Michael Osera
  *)
 
- (* The general form for pattern matching is
-  *  | pattern   -> result
-  *  | pattern   -> retult
-  * The general form for declaring a type is as follows
-  *   type pair_of_ints = {a : int; b : int };; 
-  *)
+type value =
+  | VInt      of int 
+  | VBool     of bool
+ 
 type exp = 
-  | EInt    of int 
+  | EInt       of int 
+  | EBool      of bool 
+  | ELeqInt    of exp * exp     (*Integer Comparison: Less-than-or-equals*)
   | EAddInt    of exp * exp     (*Integer Addtion*)
   | ESubInt    of exp * exp     (*Integer Subtraction*)
   | EMultiInt  of exp * exp     (*Integer Multiplication*) 
   | EDivInt    of exp * exp     (*Integer Division*) 
 
-(* Example: Elementary function
- *  let rec fact x = 
- *    if x <= 1 then 1 else x * fact(x - 1);;
- *)
-let rec interpret (e:exp) : int =
+let value_of_int  (n:int)  : value = VInt n
+let value_of_bool (b:bool) : value = VBool b
+let int_of_value  (v:value): int =
+  match v with
+  | VInt n  -> n 
+  | _       -> failwith "Unexpected Value Provided: Not a VInt"
+let bool_of_value (v:value): bool =
+  match v with
+  | VBool b -> b
+  | _       -> failwith "Unexpected Value Provided: Not a VBool"
+
+let rec interpret (e:exp) : value =
   match e with
-  | EInt n             -> n 
-  | EAddInt   (e1, e2) -> interpret e1 + interpret e2
-  | ESubInt   (e1, e2) -> interpret e1 - interpret e2
-  | EMultiInt (e1, e2) -> interpret e1 * interpret e2
-  | EDivInt   (e1, e2) -> let denominator = interpret e2 in
+  | EInt n             -> VInt n  
+  | EBool b            -> VBool b
+  | ELeqInt   (e1, e2) -> value_of_bool(int_of_value (interpret e1) <= int_of_value (interpret e2))
+  | EAddInt   (e1, e2) -> value_of_int(int_of_value (interpret e1) + int_of_value (interpret e2))
+  | ESubInt   (e1, e2) -> value_of_int(int_of_value (interpret e1) - int_of_value (interpret e2))
+  | EMultiInt (e1, e2) -> value_of_int(int_of_value (interpret e1) * int_of_value (interpret e2))
+  | EDivInt   (e1, e2) -> let denominator = int_of_value(interpret e2) in
                               if denominator != 0 then
-                                interpret e1 / interpret e2
+                              value_of_int(int_of_value (interpret e1) / denominator)
                               else 
                                 failwith "Dividing by zero is bad"
 (* Note that there are different operations for floating-point numbers.

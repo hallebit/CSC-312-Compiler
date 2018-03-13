@@ -15,8 +15,10 @@
 
 type token = 
   | TInt of int 
+  | TBool of bool
   | TLParen
   | TRParen
+  | TLeq
   | TPlus
   | TMinus
   | TMulti
@@ -25,12 +27,16 @@ type token =
 let string_of_token (t:token) : string = 
   match t with
   | TInt n  -> string_of_int n
+  | TBool b -> string_of_bool b 
   | TLParen -> "("
   | TRParen -> ")"
+  | TLeq    -> "<="
   | TPlus   -> "+"
-  | TMinus   -> "-"
-  | TMulti   -> "*"
-  | TDivide   -> "/"
+  | TMinus  -> "-"
+  | TMulti  -> "*"
+  | TDivide -> "/"
+
+let keywords = [("true", TBool true); ("false", TBool false); ("<=", TLeq)]
 
 let string_of_token_list (toks:token list) : string =
   (* Note that String.concat sep sl concatenates the list of strings
@@ -62,22 +68,30 @@ let is_digit (ch:char) : bool =
   let code = Char.code ch in
   48 <= code && code <= 57 
 
-(* Note: lex contains two nested helper functions, lex_num and go *)
+(*This procedure returns true if the char is one of those used in a keyword*)
+let is_keychar (ch:char) : bool = 
+  let code = Char.code ch in
+  (97 <= code && code <= 122) || (60 <= code && code <= 61)
+
 let lex (src:char Stream.t) : token list = 
   let rec lex_num acc = 
     if is_digit (peek src) then
-      (* Note ^ is the operator for string concatenation.*)
       lex_num (acc ^ (Char.escaped (advance src)))
     else
       int_of_string acc
   in
+  let rec lex_keyword acc = 
+    if is_keychar (peek src) then
+      lex_keyword (acc ^ (Char.escaped (advance src)))
+    else if (List.mem_assoc acc keywords) then
+      acc
+    else
+      failwith (Printf.sprintf "%s is not a known keyword" acc)
+  in
   let rec go () =
     if not (is_empty src) then
       let ch = peek src in
-        match ch with
-        (* Note that      :: is the cons operator
-         * Also note that ignore discards the value of its argument and returns (). 
-         *)
+        match ch with 
         | '(' -> advance src |> ignore; TLParen :: go ()
         | ')' -> advance src |> ignore; TRParen :: go ()
         | '+' -> advance src |> ignore; TPlus   :: go ()
@@ -90,7 +104,10 @@ let lex (src:char Stream.t) : token list =
           else if is_digit ch then
             let n = lex_num "" in 
             TInt n :: go ()
-          else 
+          else if is_keychar ch then
+            let key = lex_keyword "" in
+            List.assoc key keywords :: go ()
+          else
             failwith (Printf.sprintf "Unexpected character found: %c" ch)
     else 
       []

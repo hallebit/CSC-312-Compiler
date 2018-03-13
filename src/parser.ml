@@ -47,6 +47,7 @@ let rec parse (toks:token list) : (exp * token list) =
       let toks        = consume TLParen toks in
       let operator    = peek toks in
       let toks        = (match operator with
+                        | TLeq    -> consume TLeq     toks
                         | TPlus   -> consume TPlus    toks
                         | TMinus  -> consume TMinus   toks
                         | TMulti  -> consume TMulti   toks 
@@ -56,7 +57,8 @@ let rec parse (toks:token list) : (exp * token list) =
       let (e1, toks)  = parse toks in
       let (e2, toks)  = parse toks in
       let toks        = consume TRParen toks in
-      (match operator with 
+      (match operator with
+      | TLeq    -> (ELeqInt   (e1, e2), toks)
       | TPlus   -> (EAddInt   (e1, e2), toks)
       | TMinus  -> (ESubInt   (e1, e2), toks)
       | TMulti  -> (EMultiInt (e1, e2), toks)

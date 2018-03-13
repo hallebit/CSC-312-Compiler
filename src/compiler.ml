@@ -13,8 +13,12 @@
  * In class:
  *    Professor Peter Michael Osera
  *)
+let string_of_value (v:Lang.value) : string =
+  match v with
+  | Lang.VInt n  -> string_of_int n
+  | Lang.VBool b -> string_of_bool b
 
- let main() =
+let main () =
   (* The command line arguments given to the process. 
    * The first element is the command name used to invoke the program. 
    * The following elements are the command-line arguments given to the program.
@@ -25,7 +29,7 @@
   (* Note that the |> operater take the result of the left-hand side
    * and feeds it as an argument to the function on the right-hand side
    *)
-  Lang.interpret e |> string_of_int |> print_endline
+  Lang.interpret e |> string_of_value |> print_endline
 
 (* Remember '_' means "I know there is something here and
  *                     I explicitly say I will not use it, 

@@ -1,7 +1,15 @@
 256
+Fatal error: exception Failure("Unexpected token found: false")
+Fatal error: exception Failure("Unexpected token found: true")
 5
 Fatal error: exception Failure("Dividing by zero is bad")
 Fatal error: exception Failure("Dividing by zero is bad")
+false
+true
+true
+Fatal error: exception Failure("Unexpected token found: true")
+true
+true
 24
 -2
 -9
