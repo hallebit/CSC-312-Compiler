@@ -16,6 +16,7 @@ Halle Remash | halle@remash.com
   - Else see the [merlin's README](https://github.com/ocaml/merlin) to install
       
 ### Makefile Commands
+The Makefile for this project is located in the `./src` directory. Navigate there in order to run Makefile commands.
 - `make`        : build project 
 - `make clean`  : removes automatically generated files and executables
 - `make cleanup`: removes automatically generated files
