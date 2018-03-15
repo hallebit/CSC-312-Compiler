@@ -14,11 +14,13 @@
 
 type value =
   | VInt      of int 
-  | VBool     of bool
+  | VTrue
+  | VFalse
  
 type exp = 
   | EInt       of int 
-  | EBool      of bool 
+  | ETrue      of bool
+  | EFalse     of bool 
   | EIf        of exp * exp * exp (*If Statment*)
   | ELeqInt    of exp * exp       (*Integer Comparison: Less-than-or-equals*)
   | EAddInt    of exp * exp       (*Integer Addtion*)
@@ -34,7 +36,8 @@ let string_of_value (v:value) : string =
 let rec string_of_exp (e:exp) : string = 
   match e with
   | EInt n                  -> string_of_int n     
-  | EBool b                 -> string_of_bool b
+  | ETrue                   -> string_of_bool true
+  | EFalse                  -> string_of_bool false
   | EIf       (e1, e2, e3)  -> "(if " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ " " ^ string_of_exp e3 ^ ")"
   | ELeqInt   (e1, e2)      -> "(<= " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
   | EAddInt   (e1, e2)      -> "(+ "  ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
@@ -43,20 +46,26 @@ let rec string_of_exp (e:exp) : string =
   | EDivInt   (e1, e2)      -> "(/ "  ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
     
 let value_of_int  (n:int)  : value = VInt n
-let value_of_bool (b:bool) : value = VBool b
+let value_of_bool (b:bool) : value = 
+  match b with
+  | true  -> VTrue
+  | false -> VFalse
+  | _       -> failwith "Unexpected Boolean Value Provided: Not true or false" 
 let int_of_value  (v:value): int =
   match v with
   | VInt n  -> n 
   | _       -> failwith "Unexpected Value Provided: Not a VInt"
 let bool_of_value (v:value): bool =
   match v with
-  | VBool b -> b
-  | _       -> failwith "Unexpected Value Provided: Not a VBool"
+  | VTrue   -> true
+  | VFalse  -> false
+  | _       -> failwith "Unexpected Value Provided: Not a VTrue or VFalse"
 
 let rec interpret (e:exp) : value =
   match e with
   | EInt n                -> VInt n  
-  | EBool b               -> VBool b
+  | ETrue                 -> VTrue
+  | EFalse                -> VFalse
   | EIf       (e1, e2, e3)-> if bool_of_value (interpret e1) then (interpret e2) else (interpret e3)
   | ELeqInt   (e1, e2)    -> value_of_bool(int_of_value (interpret e1) <= int_of_value (interpret e2))
   | EAddInt   (e1, e2)    -> value_of_int(int_of_value (interpret e1) + int_of_value (interpret e2))
