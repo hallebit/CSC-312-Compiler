@@ -13,31 +13,33 @@
  * In class:
  *    Professor Peter Michael Osera
  *)
-let string_of_value (v:Lang.value) : string =
-  match v with
-  | Lang.VInt n  -> string_of_int n
-  | Lang.VBool b -> string_of_bool b
+ let print_lex       = ref false
+ let print_parse     = ref false
 
-let main () =
-  (* The command line arguments given to the process. 
-   * The first element is the command name used to invoke the program. 
-   * The following elements are the command-line arguments given to the program.
-   *)
-  let filename = Sys.argv.(1) in
+ let specialist = [
+   ("-lex", Arg.Set print_lex, "processes the input source file through the lexing phase and prints the resulting stream of tokens");
+   ("-parse", Arg.Set print_parse, "processes the input source file through the parsing phase and prints the resulting abstract syntax tree")
+ ]
+
+ let usage = "Usage: ./compiler [flags] [args]"
+
+ let driver (filename:string) =
   let tokens = Lexer.lex (Stream.of_channel (open_in filename)) in
-  let (e, _) = Parser.parse tokens in
-  (* Note that the |> operater take the result of the left-hand side
-   * and feeds it as an argument to the function on the right-hand side
-   *)
-  Lang.interpret e |> string_of_value |> print_endline
+  if !print_lex then
+    tokens 
+    |> Lexer.string_of_token_list
+    |> print_string  
+  else if !print_parse then
+    let (e, _) = Parser.parse tokens in
+    Lang.string_of_exp e |> print_string
+  else 
+    let (e, _) = Parser.parse tokens in
+    Lang.interpret e |> Lang.string_of_value |> print_endline
 
-(* Remember '_' means "I know there is something here and
- *                     I explicitly say I will not use it, 
- *                     so I don't name it."
- * Remember '()' is the symbol for unit 
- * Note that Sys.interactive is a reference that is 
- *                     initially set to fals in standalone programs
- *                     and to true if the code is being executed under
- *                     the interactive toplevel system ocaml. 
- *)
+ let main () =
+  Arg.parse
+    specialist
+    driver
+    usage
+
 let _ = if !Sys.interactive then () else main()

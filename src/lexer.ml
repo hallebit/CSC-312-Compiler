@@ -36,17 +36,12 @@ let string_of_token (t:token) : string =
   | TPlus   -> "+"
   | TMinus  -> "-"
   | TMulti  -> "*"
-  | TDivide -> "/"
-
-let keywords = [("true", TBool true); ("false", TBool false); ("if", TIf); ("<=", TLeq)]
+  | TDivide -> "/" 
 
 let string_of_token_list (toks:token list) : string =
-  (* Note that String.concat sep sl concatenates the list of strings
-   *           inserting the separator string sep between each.
-   * Also note that List.map applies a function f to each element of
-   *           the given list and builds a list with the results. 
-   *)
-  String.concat "," (List.map string_of_token toks)
+  "[" ^ String.concat ", " (List.map string_of_token toks) ^ "]" 
+
+let keywords = [("true", TBool true); ("false", TBool false); ("if", TIf); ("<=", TLeq)]
 
 (* Peeks at the head of the stream without advancing it forward*)
 let peek (src:char Stream.t) : char = 

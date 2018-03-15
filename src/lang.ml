@@ -24,8 +24,24 @@ type exp =
   | EAddInt    of exp * exp       (*Integer Addtion*)
   | ESubInt    of exp * exp       (*Integer Subtraction*)
   | EMultiInt  of exp * exp       (*Integer Multiplication*) 
-  | EDivInt    of exp * exp       (*Integer Division*) 
+  | EDivInt    of exp * exp       (*Integer Division*)  
 
+let string_of_value (v:value) : string =
+  match v with
+  | VInt n  -> string_of_int n
+  | VBool b -> string_of_bool b
+
+let rec string_of_exp (e:exp) : string = 
+  match e with
+  | EInt n                  -> string_of_int n     
+  | EBool b                 -> string_of_bool b
+  | EIf       (e1, e2, e3)  -> "(if " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ " " ^ string_of_exp e3 ^ ")"
+  | ELeqInt   (e1, e2)      -> "(<= " ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+  | EAddInt   (e1, e2)      -> "(+ "  ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+  | ESubInt   (e1, e2)      -> "(- "  ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+  | EMultiInt (e1, e2)      -> "(* "  ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+  | EDivInt   (e1, e2)      -> "(/ "  ^ string_of_exp e1 ^ " " ^ string_of_exp e2 ^ ")"
+    
 let value_of_int  (n:int)  : value = VInt n
 let value_of_bool (b:bool) : value = VBool b
 let int_of_value  (v:value): int =
