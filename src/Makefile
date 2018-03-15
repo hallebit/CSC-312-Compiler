@@ -1,12 +1,37 @@
-all: 
-	ocamlc -o compiler ./lang.ml ./lexer.ml ./parser.ml ./compiler.ml
+OCBFLAGS :=
+OCB := ocamlbuild $(OCBFLAGS)
+
+.PHONY: all debug clean top
+
+all: ./compiler.byte
+debug: all compiler.cma
+
+%.cma: .FORCE
+	$(OCB) $@
+
+%.cmxa: .FORCE
+	$(OCB) $@
+
+%.native: .FORCE
+	$(OCB) $@
+
+%.p.native: .FORCE
+	$(OCB) $@
+
+%.byte: .FORCE
+	$(OCB) $@
+
+.FORCE:
 
 cleanup: 
-	rm -f *.cmi *.cmo ../tests/OutputResult
+	rm -f *.cmi *.cmo ../tests/*.result ./compiler.byte
 
 clean: 
-	rm -f *.cmi *.cmo ../tests/OutputResult compiler 
+	$(OCB) -clean
 
-test:
-	ocamlc -o compiler lang.ml lexer.ml parser.ml compiler.ml
+top: compiler.cma
+	utop
+
+test: 
 	sh ../tests/test.sh
+	rm -f ../tests/*.result
