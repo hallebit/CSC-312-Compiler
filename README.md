@@ -23,7 +23,7 @@ The Makefile for this project is located in the `./src` directory. Navigate ther
 - `make test`   : runs test.sh, the project test suite
 
 ### Excecution Instructions
-`make` currently produces the file `read` which can be run in the terminal. 
+`make` currently produces the file `compiler` which can be run in the terminal. 
 
 ### Current Language Syntax 
 ```
