@@ -19,8 +19,8 @@ type value =
  
 type exp = 
   | EInt       of int 
-  | ETrue      of bool
-  | EFalse     of bool 
+  | ETrue      
+  | EFalse      
   | EIf        of exp * exp * exp (*If Statment*)
   | ELeqInt    of exp * exp       (*Integer Comparison: Less-than-or-equals*)
   | EAddInt    of exp * exp       (*Integer Addtion*)
@@ -31,7 +31,8 @@ type exp =
 let string_of_value (v:value) : string =
   match v with
   | VInt n  -> string_of_int n
-  | VBool b -> string_of_bool b
+  | VTrue   -> "true"
+  | VFalse  -> "false"
 
 let rec string_of_exp (e:exp) : string = 
   match e with

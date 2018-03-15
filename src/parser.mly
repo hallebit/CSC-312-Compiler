@@ -30,10 +30,10 @@ prog:
 exp:
   | LPAREN n=INT RPAREN                     { EInt n }
   | n=INT                                   { EInt n }
-  | LPAREN TRUE RPAREN                      { EBool true  }
-  | LPAREN FALSE RPAREN                     { EBool false  }
-  | TRUE                                    { EBool true  }
-  | FALSE                                   { EBool false  }
+  | LPAREN TRUE RPAREN                      { ETrue  }
+  | LPAREN FALSE RPAREN                     { EFalse  }
+  | TRUE                                    { ETrue  }
+  | FALSE                                   { EFalse  }
   | LPAREN e1=exp PLUS e2=exp RPAREN        { EAddInt (e1, e2) }
   | LPAREN e1=exp MINUS e2=exp RPAREN       { ESubInt (e1, e2) }
   | LPAREN e1=exp TIMES e2=exp RPAREN       { EMultiInt (e1, e2) }

@@ -39,7 +39,8 @@
     let str = lexeme lexbuf in 
     List.assoc str keyphrases
   
-  let create_int lexbuf = lexeme lexbuf |> int_of_string
+  let create_int lexbuf = 
+    lexeme lexbuf |> int_of_string
 }
   let newline     = '\n' | ('\r' '\n') | '\r'
   let whitespace  = ['\t' ' ']

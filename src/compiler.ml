@@ -11,14 +11,36 @@
  * In class:
  *    Professor Peter Michael Osera
  *)
+ let print_lex       = ref false
+ let print_parse     = ref false
 
- let main () =
-    Sys.argv.(1)
+ let specialist = [
+   ("-parse", Arg.Set print_parse, "processes the input source file through the parsing phase and prints the resulting abstract syntax tree")
+ ]
+
+ let usage = "Usage: ./compiler.byte [flags] [args]"
+
+ let driver (filename:string) =
+  if !print_parse then
+    filename
+    |> open_in_bin
+    |> Lexing.from_channel
+    |> Parser.prog Lexer.token
+    |> Lang.string_of_exp
+    |> print_string
+  else 
+    filename
     |> open_in_bin
     |> Lexing.from_channel
     |> Parser.prog Lexer.token
     |> Lang.interpret
     |> Lang.string_of_value
     |> print_endline
+
+ let main () =
+  Arg.parse
+    specialist
+    driver
+    usage
 
 let _ = if !Sys.interactive then () else main()

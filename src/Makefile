@@ -24,7 +24,7 @@ debug: all compiler.cma
 .FORCE:
 
 cleanup: 
-	rm -f *.cmi *.cmo ../tests/*.result
+	rm -f *.cmi *.cmo ../tests/*.result ./compiler.byte
 
 clean: 
 	$(OCB) -clean
