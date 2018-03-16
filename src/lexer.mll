@@ -19,39 +19,34 @@
    ("+", PLUS);
    ("-", MINUS);
    ("*", TIMES);
-   ("/", FSLASH)
-  ]
-
-  let keyphrases : (string * Parser.token) list =
-  [("true", TRUE);
-   ("false", FALSE);
+   ("/", FSLASH);
    ("if", IF);
    ("then", THEN);
    ("else", ELSE);
-   ("<=", LEQ)
+   ("<=", LEQ);
+   ("let", LET);
+   ("=", EQUAL);
+   ("in", IN);
+   ("fun", FUN);
+   ("->", ARROW)
   ]
 
   let create_symbol lexbuf =
     let str = lexeme lexbuf in 
     List.assoc str symbols
-
-  let create_keyphrase lexbuf =
-    let str = lexeme lexbuf in 
-    List.assoc str keyphrases
-  
-  let create_int lexbuf = 
-    lexeme lexbuf |> int_of_string
 }
   let newline     = '\n' | ('\r' '\n') | '\r'
   let whitespace  = ['\t' ' ']
   let digit       = ['0'-'9'] 
-  let symbol      = '(' | ')' | '+' | '-' | '*' | '/' 
-  let keyphrase   = "true" | "false" | "if" | "then" | "else" | "<="
+  let boolean     = "true" | "false"
+  let symbol      = '(' | ')' | '+' | '-' | '*' | '/' | "if" | "then" | "else" | "<=" | "let" | "=" | "in" | "fun" | "->"
+  let name        = ['A'-'Z' 'a'-'z' '_']['A'-'Z' 'a'-'z' '0'-'9' '_']*
 
   rule token = parse 
   | eof                     { EOF }
-  | digit+                  { INT (int_of_string (lexeme lexbuf)) }
   | whitespace+ | newline+  { token lexbuf }
+  | digit+                  { INT  (int_of_string (lexeme lexbuf)) }
+  | boolean                 { BOOL (bool_of_string (lexeme lexbuf)) }
   | symbol                  { create_symbol lexbuf }
-  | keyphrase               { create_keyphrase lexbuf }
+  | name                    { NAME (lexeme lexbuf) }
   | _ as c { raise @@ Lexer_error ("Unexpected character: " ^ Char.escaped c) }

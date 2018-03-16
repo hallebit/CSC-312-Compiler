@@ -41,3 +41,17 @@
   if [ "$DIFF" != "" ]; then 
     exit -1
   fi
+
+./compiler.byte ../tests/test4.src                            > ../tests/test4.result 
+
+ DIFF=$(diff ../tests/test4.out ../tests/test4.result )
+  if [ "$DIFF" != "" ]; then 
+    exit -1
+  fi
+
+./compiler.byte -parse ../tests/test4.src                     > ../tests/test4.parse.result 
+
+ DIFF=$(diff ../tests/test4.parse.out ../tests/test4.parse.result )
+  if [ "$DIFF" != "" ]; then 
+    exit -1
+  fi
