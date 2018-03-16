@@ -31,10 +31,13 @@ The Makefile for this project is located in the `./src` directory. Navigate ther
 `make` currently produces the file `compiler.byte` which can be run in the terminal.
 Note that this project compiles byte-code instead of native code.
 Also note that `./compiler.byte` can be excecuted with `-help` and `-parse` flags in 
-addition to the `.src` file that it "compiles" 
+addition to the `.src` file that it "compiles".
+When you wish to recompile the project (on Windows using Cygwin) type `make cleanup`
+before typing `make`.
 
 ### Current Language Syntax 
 ```
 e ::= n | (e) | e1 + e1 | e1 - e2 | e1 * e2 | e1 / e2
         | true | false | e1 <= e2 | if e1 then e2 else e3
+        | x | let x = e1 in e2 | fun x -> e | e1 e2 | fix f x -> e
 ```
