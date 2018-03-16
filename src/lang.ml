@@ -18,6 +18,7 @@ type lit =
 type value =
   | VLit of lit                   (*A literal value*)
   | VFun of exp * exp             (*A function value*)
+  | VFix of exp * exp * exp             (*A recursive function value*)
 and exp = 
   | EVal       of value
   | EVar       of string          (*Variable named string*)      
@@ -33,10 +34,20 @@ and exp =
 (* This function substitutes every instance of s in e with v *)
 let rec subst (v:value) (s:string) (e: exp) : exp =
   match e with
-  | EVal v              ->  begin
-                              match v with
-                              | VLit v        -> EVal (VLit v)
-                              | VFun (e1, e2) -> EVal (VFun (e1, (subst v s e2)))
+  | EVal w              ->  begin
+                              match w with
+                              | VLit l                   -> EVal (VLit l)
+                              | VFun (EVar f, e1)        -> if (compare f s) = 0 then 
+                                                              e 
+                                                            else 
+                                                              EVal (VFun (EVar f, (subst v s e1)))
+                              | VFix (EVar f, EVar x, e1)-> if (compare f s) = 0 then 
+                                                              e
+                                                            else if (compare x s) = 0 then
+                                                              e
+                                                            else 
+                                                              EVal (VFix (EVar f, EVar x, (subst v s e1)))
+                              | _                        -> failwith "Substitution Error: Unexpected Value"
                             end
   | EVar name           -> if (String.compare s name) = 0 then EVal v else e
   | EIf  (e1, e2, e3)   -> EIf ((subst v s e1), (subst v s e2), (subst v s e3))
@@ -50,18 +61,19 @@ let rec subst (v:value) (s:string) (e: exp) : exp =
 
 let rec string_of_exp (e:exp) : string = 
   match e with
-  | EVal (VLit  (LInt n))  -> string_of_int  n     
-  | EVal (VLit (LBool b)) -> string_of_bool b 
-  | EVal (VFun (e1, e2))-> "(fun " ^ string_of_exp e1 ^ " -> " ^ string_of_exp e2 ^ ")"
-  | EVar s              -> s
-  | EIf   (e1, e2, e3)  -> "(if "  ^ string_of_exp e1 ^ " then " ^ string_of_exp e2 ^ " else " ^ string_of_exp e3 ^ ")"
-  | ELeqInt   (e1, e2)  -> "("     ^ string_of_exp e1 ^ " <= "   ^ string_of_exp e2 ^ ")"
-  | EAddInt   (e1, e2)  -> "("     ^ string_of_exp e1 ^ " + "    ^ string_of_exp e2 ^ ")"
-  | ESubInt   (e1, e2)  -> "("     ^ string_of_exp e1 ^ " - "    ^ string_of_exp e2 ^ ")"
-  | EMultiInt (e1, e2)  -> "("     ^ string_of_exp e1 ^ " * "    ^ string_of_exp e2 ^ ")"
-  | EDivInt   (e1, e2)  -> "("     ^ string_of_exp e1 ^ " / "    ^ string_of_exp e2 ^ ")"
-  | ELet   (v, e2, e3)  -> "(let " ^ string_of_exp v  ^ " = "    ^ string_of_exp e2 ^ " in " ^ string_of_exp e3 ^ ")"
-  | ERunFun   (e1, e2)  -> "("     ^ string_of_exp e1 ^ " "      ^ string_of_exp e2 ^ ")"  
+  | EVal (VLit  (LInt n))     -> string_of_int  n     
+  | EVal (VLit (LBool b))     -> string_of_bool b 
+  | EVal (VFun (e1, e2))      -> "(fun " ^ string_of_exp e1 ^ " -> "   ^ string_of_exp e2 ^ ")"
+  | EVal (VFix (e1, e2, e3))  -> "(fix " ^ string_of_exp e1 ^ " "      ^ string_of_exp e2 ^ " -> "   ^ string_of_exp e3 ^ ")"
+  | EVar s                    -> s
+  | EIf   (e1, e2, e3)        -> "(if "  ^ string_of_exp e1 ^ " then " ^ string_of_exp e2 ^ " else " ^ string_of_exp e3 ^ ")"
+  | ELeqInt   (e1, e2)        -> "("     ^ string_of_exp e1 ^ " <= "   ^ string_of_exp e2 ^ ")"
+  | EAddInt   (e1, e2)        -> "("     ^ string_of_exp e1 ^ " + "    ^ string_of_exp e2 ^ ")"
+  | ESubInt   (e1, e2)        -> "("     ^ string_of_exp e1 ^ " - "    ^ string_of_exp e2 ^ ")"
+  | EMultiInt (e1, e2)        -> "("     ^ string_of_exp e1 ^ " * "    ^ string_of_exp e2 ^ ")"
+  | EDivInt   (e1, e2)        -> "("     ^ string_of_exp e1 ^ " / "    ^ string_of_exp e2 ^ ")"
+  | ELet   (v, e2, e3)        -> "(let " ^ string_of_exp v  ^ " = "    ^ string_of_exp e2 ^ " in " ^ string_of_exp e3 ^ ")"
+  | ERunFun   (e1, e2)        -> "("     ^ string_of_exp e1 ^ " "      ^ string_of_exp e2 ^ ")"  
 
 let string_of_value (v:value) : string =
   match v with
@@ -84,22 +96,24 @@ let bool_of_value (v:value) : bool =
 
 let rec interpret (e:exp) : value =
   match e with
-  | EVal v              -> v
-  | EVar s              -> failwith "Unexpected Variable Name in Value Interpretation"
-  | EIf   (e1, e2, e3)  -> if bool_of_value (interpret e1) then (interpret e2) else (interpret e3)
-  | ELeqInt   (e1, e2)  -> value_of_bool(int_of_value (interpret e1) <= int_of_value (interpret e2))
-  | EAddInt   (e1, e2)  -> value_of_int (int_of_value (interpret e1) +  int_of_value (interpret e2))
-  | ESubInt   (e1, e2)  -> value_of_int (int_of_value (interpret e1) -  int_of_value (interpret e2))
-  | EMultiInt (e1, e2)  -> value_of_int (int_of_value (interpret e1) *  int_of_value (interpret e2))
-  | EDivInt   (e1, e2)  -> let denominator = int_of_value(interpret e2) in
-                            if denominator != 0 then
-                            value_of_int(int_of_value (interpret e1) / denominator)
-                            else 
-                              failwith "Dividing by zero is bad"
-  | ELet  (EVar e1, e2, e3)  -> interpret (subst (interpret e2) e1 e3) 
-  | ERunFun   (e1, e2)  -> begin
-                            match (interpret e1) with
-                            | VFun ((EVar v), f) -> interpret (subst (interpret e2) v f)
-                            | _                  -> failwith "Incorrect Function Syntax"
-                           end
-  | _ as e              -> failwith ("Unexpected Expresion " ^ string_of_exp e)
+  | EVal v                  -> v
+  | EVar s                  -> failwith "Unexpected Variable Name in Value Interpretation"
+  | EIf   (e1, e2, e3)      -> if bool_of_value (interpret e1) then (interpret e2) else (interpret e3)
+  | ELeqInt   (e1, e2)      -> value_of_bool(int_of_value (interpret e1) <= int_of_value (interpret e2))
+  | EAddInt   (e1, e2)      -> value_of_int (int_of_value (interpret e1) +  int_of_value (interpret e2))
+  | ESubInt   (e1, e2)      -> value_of_int (int_of_value (interpret e1) -  int_of_value (interpret e2))
+  | EMultiInt (e1, e2)      -> value_of_int (int_of_value (interpret e1) *  int_of_value (interpret e2))
+  | EDivInt   (e1, e2)      -> let denominator = int_of_value(interpret e2) in
+                                if denominator != 0 then
+                                  value_of_int(int_of_value (interpret e1) / denominator)
+                                else 
+                                  failwith "Dividing by zero is bad"
+  | ELet  (EVar x, e1, e2)  -> interpret (subst (interpret e1) x e2) 
+  | ERunFun    (f, e1)      -> begin
+                                let func = interpret f in
+                                  match func with
+                                  | VFun (EVar xf, ef)          -> interpret (subst (interpret e1) xf ef)
+                                  | VFix (EVar ff, EVar xf, ef) -> interpret (subst func ff (subst (interpret e1) xf ef))
+                                  | _                           -> failwith "Incorrect Function Syntax"
+                              end
+  | _ as e                  -> failwith ("Cannot Interpret Expression " ^ string_of_exp e)
