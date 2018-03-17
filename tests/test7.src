@@ -1,6 +1,6 @@
-let count_by = 
-    fun x ->    
-        fix f c ->
+let count_by:(int -> (int -> int)) = 
+    fun (x:int) : (int -> int) ->    
+        fix f (c:int) : int ->
         if 1 <= c then
             x + (f (c - 1))
         else

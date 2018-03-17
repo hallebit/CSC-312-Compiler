@@ -1,6 +1,6 @@
-let remainder =
-    fun y ->
-        fix f x ->
+let remainder:(int -> (int -> int)) =
+    fun (y:int): (int -> int) ->
+        fix f (x:int): int ->
             if (y <= x - y) then
                 f (x - y)
             else 

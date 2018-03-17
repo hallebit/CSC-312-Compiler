@@ -29,7 +29,10 @@
    ("in", IN);
    ("fun", FUN);
    ("->", ARROW);
-   ("fix", FIX)
+   (":", COLON);
+   ("fix", FIX);
+   ("int", TINT);
+   ("bool", TBOOL)
   ]
 
   let create_symbol lexbuf =
@@ -40,7 +43,8 @@
   let whitespace  = ['\t' ' ']
   let digit       = ['0'-'9'] 
   let boolean     = "true" | "false"
-  let symbol      = '(' | ')' | '+' | '-' | '*' | '/' | "if" | "then" | "else" | "<=" | "let" | "=" | "in" | "fun" | "->" | "fix"
+  let symbol      = '(' | ')' | '+' | '-' | '*' | '/' | ':' | "if" | "then" | "else" | "<=" | "let" 
+                    | "=" | "in" | "fun" | "->" | "fix" | "int" | "bool" 
   let name        = ['A'-'Z' 'a'-'z' '_']['A'-'Z' 'a'-'z' '0'-'9' '_']*
 
   rule token = parse 

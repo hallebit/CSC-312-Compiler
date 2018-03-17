@@ -1,0 +1,2 @@
+(fun (x:int) : int ->
+    (fun (y:int) : int -> x) 4) 7
