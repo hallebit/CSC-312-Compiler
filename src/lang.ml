@@ -21,6 +21,7 @@ type typ =
   | TFun       of typ * typ             (*A function type*)
   | TPair      of typ * typ             (*A Pair type*)
   | TUnit                               (*A Unit type*)
+  | TRef       of typ                   (*A Ref type*)
 
 type value =
   | VLit of lit                         (*A literal value*)

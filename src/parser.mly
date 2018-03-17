@@ -31,6 +31,9 @@ open Lang
 %token UNIT       (*  ()  *)
 %token FIRST      (*  fst *)
 %token SECOND     (*  snd *)
+%token REF        (* ref  *)
+%token SET        (*  :=  *)
+%token BANG       (*   !  *)
 
 %token EOF
 

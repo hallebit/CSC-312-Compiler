@@ -38,6 +38,9 @@
    (",", COMMA);
    ("fst", FIRST);
    ("snd", SECOND);
+   ("ref", REF);
+   (":=", ASSIGN);
+   ("!", BANG);
   ]
 
   let create_symbol lexbuf =
@@ -52,8 +55,9 @@
   let open_c      = "\\*" 
   let close_c     = "*/" 
   let boolean     = "true" | "false"
-  let symbol      = '(' | ')' | '+' | '-' | '*' | '/' | ':' | ',' | "if" | "then" | "else" | "<=" | "let" 
-                    | "=" | "in" | "fun" | "->" | "fix" | "int" | "bool" | "()" | "unit" | "fst" | "snd"
+  let symbol      = '(' | ')' | '+' | '-' | '*' | '/' | ':' | ',' | '!'
+                    | "if" | "then" | "else" | "<=" | "let" | "=" | "in" | "fun" | "->" | "fix" 
+                    | "int" | "bool" | "()" | "unit" | "fst" | "snd" | "ref" | ":="
   let name        = ['A'-'Z' 'a'-'z' '_']['A'-'Z' 'a'-'z' '0'-'9' '_']*
 
 
