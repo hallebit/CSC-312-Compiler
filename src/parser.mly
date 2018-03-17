@@ -70,4 +70,4 @@ exp:
   | n=INT                                   { EVal (VLit (LInt  n)) }
   | b=BOOL                                  { EVal (VLit (LBool b)) }
   | s=NAME                                  { EVar  s }
-  | UNIT                                    { EVal VUnit }  
+  | UNIT                                    { EVal VUnit }

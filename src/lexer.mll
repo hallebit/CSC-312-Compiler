@@ -37,26 +37,33 @@
    ("unit", TUNIT);
    (",", COMMA);
    ("fst", FIRST);
-   ("snd", SECOND)
+   ("snd", SECOND);
   ]
 
   let create_symbol lexbuf =
     let str = lexeme lexbuf in 
     List.assoc str symbols
+
+  let open_c : int ref = ref 0 
 }
   let newline     = '\n' | ('\r' '\n') | '\r'
   let whitespace  = ['\t' ' ']
-  let digit       = ['0'-'9'] 
+  let digit       = ['0'-'9']
+  let open_c      = "\\*" 
+  let close_c     = "*/" 
   let boolean     = "true" | "false"
   let symbol      = '(' | ')' | '+' | '-' | '*' | '/' | ':' | ',' | "if" | "then" | "else" | "<=" | "let" 
                     | "=" | "in" | "fun" | "->" | "fix" | "int" | "bool" | "()" | "unit" | "fst" | "snd"
   let name        = ['A'-'Z' 'a'-'z' '_']['A'-'Z' 'a'-'z' '0'-'9' '_']*
 
+
   rule token = parse 
   | eof                     { EOF }
+  | open_c                  { open_c := !open_c + 1; token lexbuf }
+  | close_c                 { open_c := !open_c - 1; token lexbuf }
   | whitespace+ | newline+  { token lexbuf }
-  | digit+                  { INT  (int_of_string (lexeme lexbuf)) }
-  | boolean                 { BOOL (bool_of_string (lexeme lexbuf)) }
-  | symbol                  { create_symbol lexbuf }
-  | name                    { NAME (lexeme lexbuf) }
+  | digit+                  { if !open_c > 0 then token lexbuf else INT (int_of_string (lexeme lexbuf)) }
+  | boolean                 { if !open_c > 0 then token lexbuf else BOOL (bool_of_string (lexeme lexbuf)) }
+  | symbol                  { if !open_c > 0 then token lexbuf else create_symbol lexbuf }
+  | name                    { if !open_c > 0 then token lexbuf else NAME (lexeme lexbuf) }
   | _ as c { raise @@ Lexer_error ("Unexpected character: " ^ Char.escaped c) }

@@ -214,6 +214,7 @@ let rec typecheck (ctx: (string * typ) list) (e: exp) : typ =
                                                                            t2
                                                                          else 
                                                                            failwith (Printf.sprintf "Function Excecution Typecheck Fail. %s Found: %s Expected: %s" (string_of_exp e) (string_of_typ (typecheck ctx e2)) (string_of_typ t1))
+                                                 | TInt               -> TInt
                                                  | _                  -> failwith (Printf.sprintf "Function Excecution Typecheck Fail. %s Found: %s Expected: type TFun" (string_of_exp e1) (string_of_typ (typecheck ctx e1)))
                                                  end
   | EFirst ex                                 -> begin  
