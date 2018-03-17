@@ -1,0 +1,5 @@
+(fun (x:unit) : (bool * bool) ->
+if true then
+    (true, true)
+else
+    (false, false)) ()

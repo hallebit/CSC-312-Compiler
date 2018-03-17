@@ -159,3 +159,19 @@ echo "test10"
   if [ "$DIFF" != "" ]; then 
     exit -1
   fi
+
+echo "test11"
+
+./compiler.byte ../tests/test11.src                            &> ../tests/test11.result 
+
+ DIFF=$(diff ../tests/test11.out ../tests/test11.result )
+  if [ "$DIFF" != "" ]; then 
+    exit -1
+  fi
+
+./compiler.byte -parse ../tests/test11.src                     &> ../tests/test11.parse.result 
+
+ DIFF=$(diff ../tests/test11.parse.out ../tests/test11.parse.result )
+  if [ "$DIFF" != "" ]; then 
+    exit -1
+  fi

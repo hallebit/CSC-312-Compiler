@@ -32,7 +32,12 @@
    (":", COLON);
    ("fix", FIX);
    ("int", TINT);
-   ("bool", TBOOL)
+   ("bool", TBOOL);
+   ("()", UNIT);
+   ("unit", TUNIT);
+   (",", COMMA);
+   ("fst", FIRST);
+   ("snd", SECOND)
   ]
 
   let create_symbol lexbuf =
@@ -43,8 +48,8 @@
   let whitespace  = ['\t' ' ']
   let digit       = ['0'-'9'] 
   let boolean     = "true" | "false"
-  let symbol      = '(' | ')' | '+' | '-' | '*' | '/' | ':' | "if" | "then" | "else" | "<=" | "let" 
-                    | "=" | "in" | "fun" | "->" | "fix" | "int" | "bool" 
+  let symbol      = '(' | ')' | '+' | '-' | '*' | '/' | ':' | ',' | "if" | "then" | "else" | "<=" | "let" 
+                    | "=" | "in" | "fun" | "->" | "fix" | "int" | "bool" | "()" | "unit" | "fst" | "snd"
   let name        = ['A'-'Z' 'a'-'z' '_']['A'-'Z' 'a'-'z' '0'-'9' '_']*
 
   rule token = parse 

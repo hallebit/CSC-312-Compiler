@@ -19,11 +19,15 @@ type typ =
   | TInt                                (*int  type*)
   | TBool                               (*bool type*)
   | TFun       of typ * typ             (*A function type*)
+  | TPair      of typ * typ             (*A Pair type*)
+  | TUnit                               (*A Unit type*)
 
 type value =
   | VLit of lit                         (*A literal value*)
   | VFun of exp * typ * exp * typ       (*A function value*)
   | VFix of exp * exp * typ * exp * typ (*A recursive function value*)
+  | VPair of exp * exp 
+  | VUnit
 and exp = 
   | EVal       of value
   | EVar       of string                (*Variable named string*)      
@@ -35,19 +39,25 @@ and exp =
   | EDivInt    of exp * exp             (*Integer Division*)   
   | ELet       of exp * typ * exp * exp (*Let Binding*)
   | ERunFun    of exp * exp             (*Function call*)
+  | EFirst     of exp                   (*First Element of Pair*)
+  | ESecond    of exp                   (*Second Element of Pair*)
 
 let rec string_of_typ (t:typ) : string =
   match t with
   | TInt                      -> "int"
   | TBool                     -> "bool"
   | TFun (t1, t2)             -> (string_of_typ t1) ^ " -> " ^ (string_of_typ t2)
-
+  | TPair (t1, t2)            -> "(" ^ (string_of_typ t1) ^ ", " ^ (string_of_typ t2) ^ ")"
+  | TUnit                     -> "()"
+  
 let rec string_of_exp (e:exp) : string = 
   match e with
   | EVal (VLit  (LInt n))                   -> string_of_int  n     
   | EVal (VLit (LBool b))                   -> string_of_bool b 
   | EVal (VFun (EVar x, xt, e, rt))         -> "(fun ("^ x ^ ":"  ^ string_of_typ xt ^ ") : " ^ string_of_typ rt ^ " -> "   ^ string_of_exp e ^ ")"
   | EVal (VFix (EVar f, EVar x, xt, e, rt)) -> "(fix " ^ f ^ " (" ^ x ^ ":" ^ string_of_typ xt ^ ") : " ^ string_of_typ rt ^ " -> "   ^ string_of_exp e ^ ")"
+  | EVal (VPair (e1, e2))                   -> "("      ^ string_of_exp e1  ^ ", "     ^ string_of_exp e2 ^ ")"
+  | EVal VUnit                              -> "()"
   | EVar s                                  -> s
   | EIf   (e1, e2, e3)                      -> "(if "   ^ string_of_exp e1  ^ " then " ^ string_of_exp e2 ^ " else " ^ string_of_exp e3 ^ ")"
   | ELeqInt   (e1, e2)                      -> "("      ^ string_of_exp e1  ^ " <= "   ^ string_of_exp e2 ^ ")"
@@ -57,12 +67,17 @@ let rec string_of_exp (e:exp) : string =
   | EDivInt   (e1, e2)                      -> "("      ^ string_of_exp e1  ^ " / "    ^ string_of_exp e2 ^ ")"
   | ELet (EVar x, xt, e1, e2)               -> "(let "  ^ x ^ ":" ^ string_of_typ xt   ^ " = " ^ string_of_exp e1 ^ " in " ^ string_of_exp e2 ^ ")"
   | ERunFun   (e1, e2)                      -> "("      ^ string_of_exp e1 ^ " "       ^ string_of_exp e2 ^ ")"  
+  | EFirst e1                               -> "(fst "  ^ string_of_exp e1 ^ ")"
+  | ESecond e1                              -> "(snd "  ^ string_of_exp e1 ^ ")"
+
 
 let string_of_value (v:value) : string =
   match v with
   | VLit (LInt  n)            -> string_of_int  n
   | VLit (LBool b)            -> string_of_bool b
-  | VFun (EVar x, xt, e, rt)  -> "(fun ("^ x ^ ":" ^ string_of_typ xt ^ ") : " ^ string_of_typ rt ^ " -> "   ^ string_of_exp e ^ ")" 
+  | VFun (EVar x, xt, e, rt)  -> "(fun (" ^ x ^ ":" ^ string_of_typ xt ^ ") : " ^ string_of_typ rt ^ " -> "   ^ string_of_exp e ^ ")" 
+  | VUnit                     -> "()"
+  | VPair (e1, e2)            -> "(" ^ string_of_exp e1 ^ ", " ^ string_of_exp e2 ^ ")"
 
 let value_of_int  (n:int)  : value = VLit (LInt  n)
 
@@ -109,6 +124,8 @@ let rec subst (v:value) (s:string) (e: exp) : exp =
                                                                   e
                                                                 else 
                                                                   EVal (VFix (EVar f, EVar x, xt, (subst v s e1), rt))
+                                  | VUnit                    -> e 
+                                  | VPair (e1, e2)              -> EVal (VPair ((subst v s e1), (subst v s e2)))
                                   | _                        -> failwith (Printf.sprintf "Substitution Error: Unexpected Value")
                                 end
   | EVar name               -> if (String.compare s name) = 0 then EVal v else e
@@ -119,14 +136,18 @@ let rec subst (v:value) (s:string) (e: exp) : exp =
   | EMultiInt (e1, e2)      -> EMultiInt   ((subst v s e1), (subst v s e2))
   | EDivInt   (e1, e2)      -> EDivInt     ((subst v s e1), (subst v s e2))
   | ELet  (x, xt, e1, e2)   -> ELet (x, xt, (subst v s e1), (subst v s e2))
-  | ERunFun   (e1, e2)      -> ERunFun     ((subst v s e1), (subst v s e2))  
+  | ERunFun   (e1, e2)      -> ERunFun     ((subst v s e1), (subst v s e2))
+  | EFirst    e1            -> EFirst       (subst v s e1)
+  | ESecond   e1            -> ESecond      (subst v s e1)  
 
 let rec check_equals (t1: typ) (t2: typ) : bool =
   match t1, t2 with 
-  | TInt,  TInt                  -> true
-  | TBool, TBool                 -> true
-  | TFun (x1, x2), TFun (y1, y2) -> (check_equals x1 y1) && (check_equals x2 y2)
-  | _                            -> false
+  | TInt,  TInt                   -> true
+  | TBool, TBool                  -> true
+  | TFun (x1, x2), TFun (y1, y2)  -> (check_equals x1 y1) && (check_equals x2 y2)
+  | TUnit, TUnit                  -> true
+  | TPair (x1, x2), TPair (y1, y2)-> (check_equals x1 y1) && (check_equals x2 y2)
+  | _                             -> false
 
 let rec typecheck (ctx: (string * typ) list) (e: exp) : typ =
   match e with
@@ -144,6 +165,8 @@ let rec typecheck (ctx: (string * typ) list) (e: exp) : typ =
                                                     TFun (xt, rt)
                                                  else
                                                     failwith (Printf.sprintf "Fix Typecheck Fail. %s Found: Expected: %s" (string_of_exp e) (string_of_typ rt))
+  | EVal (VUnit)                              -> TUnit
+  | EVal (VPair (e1, e2))                     -> TPair ((typecheck ctx e1), (typecheck ctx e2))
   | EVar s                                    -> List.assoc s ctx
   | EIf (e1, e2, e3)                          -> begin
                                                   let typechkd = (typecheck ctx e2) in
@@ -185,13 +208,24 @@ let rec typecheck (ctx: (string * typ) list) (e: exp) : typ =
                                                     else 
                                                       failwith (Printf.sprintf "Let Typecheck Fail. %s Expected: %s" (string_of_exp e) (string_of_typ typechkd))
                                                 end
-  | ERunFun (e1, e2)                          -> match (typecheck ctx e1) with 
+  | ERunFun (e1, e2)                          -> begin 
+                                                 match (typecheck ctx e1) with 
                                                  | TFun (t1, t2)      -> if (check_equals t1 (typecheck ctx e2)) then
                                                                            t2
                                                                          else 
                                                                            failwith (Printf.sprintf "Function Excecution Typecheck Fail. %s Found: %s Expected: %s" (string_of_exp e) (string_of_typ (typecheck ctx e2)) (string_of_typ t1))
-                                                 | TInt               -> TInt  
                                                  | _                  -> failwith (Printf.sprintf "Function Excecution Typecheck Fail. %s Found: %s Expected: type TFun" (string_of_exp e1) (string_of_typ (typecheck ctx e1)))
+                                                 end
+  | EFirst ex                                 -> begin  
+                                                 match (typecheck ctx ex) with
+                                                 | TPair (t1, t2)     -> t1
+                                                 | _                  -> failwith (Printf.sprintf "First Element Pair Typecheck Fail. %s is not a Pair" (string_of_exp e))
+                                                 end
+  | ESecond ex                                -> begin 
+                                                 match (typecheck ctx ex) with
+                                                 | TPair (t1, t2)     -> t2
+                                                 | _                  -> failwith (Printf.sprintf "First Element Pair Typecheck Fail. %s is not a Pair" (string_of_exp e))
+                                                 end
 
 let rec step (e:exp) : exp = 
   match e with
@@ -244,7 +278,19 @@ let rec step (e:exp) : exp =
                                       | ERunFun _                               -> ERunFun ((step e1), e2)
                                       | EVal (VFun (EVar x, xt, e, rt))         -> subst (value_of_exp e2) x e
                                       | EVal (VFix (EVar f, EVar x, t1, e, t2)) -> subst (value_of_exp e1) f (subst (value_of_exp e2) x e)
-                                      | _ -> failwith (Printf.sprintf "Interpretation: issue with function formatting")
+                                      | _                                       -> failwith (Printf.sprintf "Interpretation: issue with function formatting")
+  | EFirst  ex                  -> begin
+                                   match ex with 
+                                   | EVal (VPair (e1, e2)) -> e1
+                                   | _ as e                -> failwith (Printf.sprintf "%s" (string_of_exp e))
+                                   end
+  | ESecond ex                  -> begin
+                                   match ex with 
+                                   | EVal (VPair (e1, e2)) -> e2
+                                   | _ as e                -> failwith (Printf.sprintf "%s" (string_of_exp e))
+                                   end
+ 
+  | _ as e                               -> failwith (Printf.sprintf "%s" (string_of_exp e))
 
 let evaluate (e:exp) : value =
   let rec eval (e':exp) : exp =

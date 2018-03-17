@@ -8,6 +8,7 @@ open Lang
 
 %token TINT       (*  int *)
 %token TBOOL      (* bool *)
+%token TUNIT      (* unit *)
 
 %token LPAREN     (*   (  *)
 %token RPAREN     (*   )  *)
@@ -26,6 +27,10 @@ open Lang
 %token COLON      (*   :  *)
 %token ARROW      (*  ->  *)
 %token FIX        (*  fix *)
+%token COMMA      (*   ,  *)
+%token UNIT       (*  ()  *)
+%token FIRST      (*  fst *)
+%token SECOND     (*  snd *)
 
 %token EOF
 
@@ -40,6 +45,8 @@ typ:
   | TINT                                    { TInt }
   | TBOOL                                   { TBool }
   | t1=typ ARROW t2=typ                     { TFun(t1, t2) }
+  | TUNIT                                   { TUnit }
+  | LPAREN t1=typ TIMES t2=typ RPAREN       { TPair(t1, t2) }
   | LPAREN t=typ RPAREN                     { t } 
 
 exp:
@@ -56,7 +63,11 @@ exp:
     RPAREN COLON rt=typ ARROW e=exp         { EVal (VFun (EVar x, xt, e, rt)) }
   | FIX f=NAME LPAREN x=NAME COLON xt=typ
     RPAREN COLON rt=typ ARROW e=exp         { EVal (VFix (EVar f, EVar x, xt, e, rt)) }
+  | LPAREN e1=exp COMMA e2=exp RPAREN       { EVal (VPair (e1, e2)) }
+  | FIRST e=exp                             { EFirst e }
+  | SECOND e=exp                            { ESecond e }
   | LPAREN e=exp RPAREN                     { e }
   | n=INT                                   { EVal (VLit (LInt  n)) }
   | b=BOOL                                  { EVal (VLit (LBool b)) }
-  | s=NAME                                  { EVar  s }  
+  | s=NAME                                  { EVar  s }
+  | UNIT                                    { EVal VUnit }  
