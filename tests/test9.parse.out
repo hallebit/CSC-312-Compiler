@@ -1,1 +1,1 @@
-(let remainder = (fun y -> (fix f x -> (if (y <= (x - y)) then (f (x - y)) else (x - y)))) in ((remainder 3) 10))
+(let remainder:int -> int -> int = (fun (y:int) : int -> int -> (fix f (x:int) : int -> (if (y <= (x - y)) then (f (x - y)) else (x - y)))) in ((remainder 3) 10))

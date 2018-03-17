@@ -33,7 +33,7 @@
     |> open_in_bin
     |> Lexing.from_channel
     |> Parser.prog Lexer.token
-    |> Lang.interpret
+    |> Lang.evaluate
     |> Lang.string_of_value
     |> print_endline
 

@@ -1,1 +1,1 @@
-(let min = (fun x -> (fun y -> (if (x <= y) then x else y))) in ((min 7) 3))
+(let min:int -> int -> int = (fun (x:int) : int -> int -> (fun (y:int) : int -> (if (x <= y) then x else y))) in ((min 7) 3))
