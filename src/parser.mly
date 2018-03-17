@@ -32,7 +32,7 @@ open Lang
 %token FIRST      (*  fst *)
 %token SECOND     (*  snd *)
 %token REF        (* ref  *)
-%token SET        (*  :=  *)
+%token ASSIGN     (*  :=  *)
 %token BANG       (*   !  *)
 
 %token EOF

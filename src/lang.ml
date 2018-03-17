@@ -27,8 +27,9 @@ type value =
   | VLit of lit                         (*A literal value*)
   | VFun of exp * typ * exp * typ       (*A function value*)
   | VFix of exp * exp * typ * exp * typ (*A recursive function value*)
-  | VPair of exp * exp 
-  | VUnit
+  | VPair of exp * exp                  (*A Pair value*)
+  | VUnit                               (*A Unit value*)
+  | VPtr of int                         (*A Pointer value*)
 and exp = 
   | EVal       of value
   | EVar       of string                (*Variable named string*)      
@@ -42,6 +43,9 @@ and exp =
   | ERunFun    of exp * exp             (*Function call*)
   | EFirst     of exp                   (*First Element of Pair*)
   | ESecond    of exp                   (*Second Element of Pair*)
+  | ERef       of exp                   (*Ref Initialization*)
+  | EAssign    of exp * exp             (*Ref Assignment*)
+  | EBang      of exp                   (*Dererencing*)
 
 let rec string_of_typ (t:typ) : string =
   match t with
@@ -50,6 +54,7 @@ let rec string_of_typ (t:typ) : string =
   | TFun (t1, t2)             -> (string_of_typ t1) ^ " -> " ^ (string_of_typ t2)
   | TPair (t1, t2)            -> "(" ^ (string_of_typ t1) ^ ", " ^ (string_of_typ t2) ^ ")"
   | TUnit                     -> "()"
+  | TRef t1                   -> "<" ^ (string_of_typ t1) ^ ">"
   
 let rec string_of_exp (e:exp) : string = 
   match e with
@@ -70,7 +75,9 @@ let rec string_of_exp (e:exp) : string =
   | ERunFun   (e1, e2)                      -> "("      ^ string_of_exp e1 ^ " "       ^ string_of_exp e2 ^ ")"  
   | EFirst e1                               -> "(fst "  ^ string_of_exp e1 ^ ")"
   | ESecond e1                              -> "(snd "  ^ string_of_exp e1 ^ ")"
-
+  | ERef e1                                 -> "(ref "  ^ string_of_exp e1 ^ ")"
+  | EAssign   (e1, e2)                      -> "("      ^ string_of_exp e1 ^ " := "    ^ string_of_exp e2 ^ ")"
+  | EBang e1                                -> "!"      ^ string_of_exp e1       
 
 let string_of_value (v:value) : string =
   match v with
@@ -79,6 +86,7 @@ let string_of_value (v:value) : string =
   | VFun (EVar x, xt, e, rt)  -> "(fun (" ^ x ^ ":" ^ string_of_typ xt ^ ") : " ^ string_of_typ rt ^ " -> "   ^ string_of_exp e ^ ")" 
   | VUnit                     -> "()"
   | VPair (e1, e2)            -> "(" ^ string_of_exp e1 ^ ", " ^ string_of_exp e2 ^ ")"
+  | VPtr n                    -> "(ptr, address: " ^ string_of_int n ^ ")"
 
 let value_of_int  (n:int)  : value = VLit (LInt  n)
 
@@ -139,7 +147,10 @@ let rec subst (v:value) (s:string) (e: exp) : exp =
   | ELet  (x, xt, e1, e2)   -> ELet (x, xt, (subst v s e1), (subst v s e2))
   | ERunFun   (e1, e2)      -> ERunFun     ((subst v s e1), (subst v s e2))
   | EFirst    e1            -> EFirst       (subst v s e1)
-  | ESecond   e1            -> ESecond      (subst v s e1)  
+  | ESecond   e1            -> ESecond      (subst v s e1)
+  | ERef      e1            -> ERef         (subst v s e1)
+  | EAssign   (e1, e2)      -> EAssign     ((subst v s e1), (subst v s e2)) 
+  | EBang     e1            -> EBang        (subst v s e1) 
 
 let rec check_equals (t1: typ) (t2: typ) : bool =
   match t1, t2 with 
@@ -228,6 +239,20 @@ let rec typecheck (ctx: (string * typ) list) (e: exp) : typ =
                                                  | TPair (t1, t2)     -> t2
                                                  | _                  -> failwith (Printf.sprintf "First Element Pair Typecheck Fail. %s is not a Pair" (string_of_exp e))
                                                  end
+  | ERef ex                                   -> TRef (typecheck ctx ex)
+  | EAssign (e1, e2)                          -> begin 
+                                                 match (typecheck ctx e1), (typecheck ctx e2) with
+                                                 | TRef t1, t2        -> if (check_equals t1 t2) then
+                                                                            TUnit
+                                                                         else 
+                                                                            failwith (Printf.sprintf "Assignment Typecheck Fail. Types do not match")
+                                                 | t, _               -> failwith (Printf.sprintf "Assignment Typecheck Fail. Assignment requires a ref operator")
+                                                 end
+  | EBang ex                                  -> begin 
+                                                 match (typecheck ctx ex) with
+                                                 | TRef t             -> t
+                                                 | _                  -> failwith (Printf.sprintf "Dereferencing Typecheck Fail. Dereferencing requires a ref operator")
+                                                 end 
 
 let rec step (e:exp) : exp = 
   match e with
@@ -290,8 +315,7 @@ let rec step (e:exp) : exp =
                                    match ex with 
                                    | EVal (VPair (e1, e2)) -> e2
                                    | _ as e                -> failwith (Printf.sprintf "%s" (string_of_exp e))
-                                   end
- 
+                                   end 
   | _ as e                               -> failwith (Printf.sprintf "%s" (string_of_exp e))
 
 let evaluate (e:exp) : value =
