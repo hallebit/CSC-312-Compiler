@@ -31,13 +31,27 @@ open Lang
 %token UNIT       (*  ()  *)
 %token FIRST      (*  fst *)
 %token SECOND     (*  snd *)
-%token REF        (* ref  *)
+%token REF        (*  ref *)
+%token OPENCARROT (*  <   *)
+%token CLOSECARROT(*   >  *)
 %token ASSIGN     (*  :=  *)
 %token BANG       (*   !  *)
+%token SEMI       (*   ;  *)
 
 %token EOF
 
 %start <Lang.exp> prog
+
+(*Precedence*)
+%left LET IN 
+%left SEMI
+%left ASSIGN
+%left ARROW
+%left LEQ
+%left PLUS MINUS
+%left FSLASH TIMES
+%nonassoc BANG
+%nonassoc REF 
 
 %%
 
@@ -50,6 +64,7 @@ typ:
   | t1=typ ARROW t2=typ                     { TFun(t1, t2) }
   | TUNIT                                   { TUnit }
   | LPAREN t1=typ TIMES t2=typ RPAREN       { TPair(t1, t2) }
+  | OPENCARROT t=typ CLOSECARROT            { TRef(t) }
   | LPAREN t=typ RPAREN                     { t } 
 
 exp:
@@ -69,6 +84,9 @@ exp:
   | LPAREN e1=exp COMMA e2=exp RPAREN       { EVal (VPair (e1, e2)) }
   | FIRST e=exp                             { EFirst e }
   | SECOND e=exp                            { ESecond e }
+  | BANG e=exp                              { EBang e }
+  | REF LPAREN e=exp RPAREN                 { ERef e }
+  | e1=exp ASSIGN e2=exp                    { EAssign (e1, e2) }
   | LPAREN e=exp RPAREN                     { e }
   | n=INT                                   { EVal (VLit (LInt  n)) }
   | b=BOOL                                  { EVal (VLit (LBool b)) }

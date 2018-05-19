@@ -1,0 +1,3 @@
+let x : <int> = ref (1 - 3) in
+    let q : <bool> = ref (!x <= 5) in
+        if (!q) then 42 else 8

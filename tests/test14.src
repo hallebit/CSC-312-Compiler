@@ -1,0 +1,12 @@
+let badsum:(int -> int) = 
+    (fix f (x:int): int ->
+        if (0 <= x - 1) then
+            1 + f (x - 1)
+        else 
+            0) in badsum 4
+
+              \*  fix f (x:int): int ->
+            if (y <= x - y) then
+                f (x - y)
+            else 
+                x - y */
