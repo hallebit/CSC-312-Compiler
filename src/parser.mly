@@ -37,6 +37,9 @@ open Lang
 %token ASSIGN     (*  :=  *)
 %token BANG       (*   !  *)
 %token SEMI       (*   ;  *)
+%token WHILE      (* while*)
+%token DO         (*  do  *)
+%token END        (*  end *)
 
 %token EOF
 
@@ -50,6 +53,7 @@ open Lang
 %left LEQ
 %left PLUS MINUS
 %left FSLASH TIMES
+%nonassoc WHILE END
 %nonassoc BANG
 %nonassoc REF 
 
@@ -81,11 +85,13 @@ exp:
     RPAREN COLON rt=typ ARROW e=exp         { EVal (VFun (EVar x, xt, e, rt)) }
   | FIX f=NAME LPAREN x=NAME COLON xt=typ
     RPAREN COLON rt=typ ARROW e=exp         { EVal (VFix (EVar f, EVar x, xt, e, rt)) }
+  | WHILE e1=exp DO e2=exp END e3=exp       { ESequence ((EWhile (e1, e1, e2)), e3) }
   | LPAREN e1=exp COMMA e2=exp RPAREN       { EVal (VPair (e1, e2)) }
   | FIRST e=exp                             { EFirst e }
   | SECOND e=exp                            { ESecond e }
   | BANG e=exp                              { EBang e }
   | REF LPAREN e=exp RPAREN                 { ERef e }
+  | e1=exp SEMI e2=exp                      { ESequence (e1, e2) }
   | e1=exp ASSIGN e2=exp                    { EAssign (e1, e2) }
   | LPAREN e=exp RPAREN                     { e }
   | n=INT                                   { EVal (VLit (LInt  n)) }

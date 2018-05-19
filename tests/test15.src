@@ -1,0 +1,9 @@
+let x : <bool> = ref (true) in
+let y : <int> = ref (6) in
+ while (!x)
+ do 
+    if (!y <= 2) then
+        x := false
+        else
+        y := !y - 4; x := true
+end !y 

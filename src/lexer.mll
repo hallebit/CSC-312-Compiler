@@ -43,6 +43,10 @@
    (">", CLOSECARROT);
    (":=", ASSIGN);
    ("!", BANG);
+   (";", SEMI);
+   ("while", WHILE);
+   ("do", DO);
+   ("end", END)
   ]
 
   let create_symbol lexbuf =
@@ -57,9 +61,10 @@
   let open_c      = "\\*" 
   let close_c     = "*/" 
   let boolean     = "true" | "false"
-  let symbol     = '(' | ')' | '+' | '-' | '*' | '/' | ':' | ',' | '!' | '<' | '>' 
+  let symbol     = '(' | ')' | '+' | '-' | '*' | '/' | ':' | ',' | '!' | '<' | '>' | ';'
                     | "if" | "then" | "else" | "<=" | "let" | "=" | "in" | "fun" | "->" | "fix" 
-                    | "int" | "bool" | "()" | "unit" | "fst" | "snd" | "ref" | ":=" 
+                    | "int" | "bool" | "()" | "unit" | "fst" | "snd" | "ref" | ":=" | "while" 
+                    | "do" | "end" 
   let name        = ['A'-'Z' 'a'-'z' '_']['A'-'Z' 'a'-'z' '0'-'9' '_']*
 
 
@@ -70,6 +75,6 @@
   | whitespace+ | newline+  { token lexbuf }
   | digit+                  { if !open_c > 0 then token lexbuf else INT (int_of_string (lexeme lexbuf)) }
   | boolean                 { if !open_c > 0 then token lexbuf else BOOL (bool_of_string (lexeme lexbuf)) }
-  | symbol                 { if !open_c > 0 then token lexbuf else create_symbol lexbuf }
+  | symbol                  { if !open_c > 0 then token lexbuf else create_symbol lexbuf }
   | name                    { if !open_c > 0 then token lexbuf else NAME (lexeme lexbuf) }
   | _ as c { raise @@ Lexer_error ("Unexpected character: " ^ Char.escaped c) }

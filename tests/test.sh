@@ -222,4 +222,36 @@ echo "test14"
  DIFF=$(diff ../tests/test14.parse.out ../tests/test14.parse.result )
   if [ "$DIFF" != "" ]; then 
     exit -1
+  fi
+
+echo "test15"
+
+  ./compiler.byte ../tests/test15.src                            &> ../tests/test15.result 
+
+ DIFF=$(diff ../tests/test15.out ../tests/test15.result )
+  if [ "$DIFF" != "" ]; then 
+    exit -1
+  fi
+
+./compiler.byte -parse ../tests/test15.src                     &> ../tests/test15.parse.result 
+
+ DIFF=$(diff ../tests/test15.parse.out ../tests/test15.parse.result )
+  if [ "$DIFF" != "" ]; then 
+    exit -1
   fi  
+
+echo "test16"
+
+  ./compiler.byte ../tests/test16.src                            &> ../tests/test16.result 
+
+ DIFF=$(diff ../tests/test16.out ../tests/test16.result )
+  if [ "$DIFF" != "" ]; then 
+    exit -1
+  fi
+
+./compiler.byte -parse ../tests/test16.src                     &> ../tests/test16.parse.result 
+
+ DIFF=$(diff ../tests/test16.parse.out ../tests/test16.parse.result )
+  if [ "$DIFF" != "" ]; then 
+    exit -1
+  fi

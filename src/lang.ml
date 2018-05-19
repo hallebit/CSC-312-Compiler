@@ -48,6 +48,8 @@ and exp =
   | ERef       of exp                   (*Ref Initialization*)
   | EAssign    of exp * exp             (*Ref Assignment*)
   | EBang      of exp                   (*Dererencing*)
+  | ESequence  of exp * exp             (*Sequence Building Block*)
+  | EWhile     of exp * exp * exp       (*While Loops*)
 
 let rec string_of_typ (t:typ) : string =
   match t with
@@ -80,6 +82,8 @@ let rec string_of_exp (e:exp) : string =
   | ERef e1                                 -> "ref("   ^ string_of_exp e1 ^ ")"
   | EAssign   (e1, e2)                      -> "("      ^ string_of_exp e1 ^ " := "    ^ string_of_exp e2 ^ ")"
   | EBang e1                                -> "!"      ^ string_of_exp e1 
+  | ESequence (e1, e2)                      -> "("      ^ string_of_exp e1 ^ ";"       ^ string_of_exp e2 ^ ")"
+  | EWhile    (e1, e2, e3)                  -> "(while "^ string_of_exp e1 ^ " do "    ^ string_of_exp e2 ^ " end " ^ string_of_exp e3 ^ ")"
   | _                                       -> failwith (Printf.sprintf "Error. Unable to make String of exp")  
 
 let string_of_value (v:value) : string =
@@ -158,7 +162,9 @@ let rec subst (v:value) (s:string) (e: exp) : exp =
   | ERef      e1            -> ERef         (subst v s e1)
   | EAssign   (e1, e2)      -> EAssign     ((subst v s e1), (subst v s e2)) 
   | EBang     e1            -> EBang        (subst v s e1)
-
+  | ESequence (e1, e2)      -> ESequence   ((subst v s e1), (subst v s e2))
+  | EWhile    (e1, e2, e3)  -> EWhile       ((subst v s e1), (subst v s e2), (subst v s e3)) 
+                              
 let rec check_equals (t1: typ) (t2: typ) : bool =
   match t1, t2 with 
   | TInt,  TInt                   -> true
@@ -264,6 +270,12 @@ let rec typecheck (ctx: (string * typ) list) (e: exp) : typ =
                                                  | TRef t             -> t
                                                  | _                  -> failwith (Printf.sprintf "Dereferencing Typecheck Fail. Dereferencing requires a ref operator. recieved type %s" ((string_of_typ ex_typ) ^ " from Expression " ^ (string_of_exp ex)))
                                                  end 
+  | ESequence (e1, e2)                        -> let typechkd = (typecheck ctx e1) in (typecheck ctx e2)
+  | EWhile (e1, e2, e3)                       -> begin 
+                                                  match (typecheck ctx e1) with 
+                                                  | TBool             -> TUnit
+                                                  | _ as t            -> failwith (Printf.sprintf "While Typechecking Fail. Boolean Required. Recieved type %s" (string_of_typ t))
+                                                 end 
   | _ as ex                                   -> failwith (Printf.sprintf "Typecheck unexpected input %s" (string_of_exp ex))
 
 let rec step (env: (int * value) list) (e:exp) : (int * value) list * exp = 
@@ -352,7 +364,7 @@ let rec step (env: (int * value) list) (e:exp) : (int * value) list * exp =
                                         | EVal (VFix (EVar f, EVar x, t1, e, t2)) -> (env, (subst (value_of_exp e1) f (subst (value_of_exp e2) x e)))
                                         | _                                       -> failwith (Printf.sprintf "Interpretation: issue with function formatting")
                                       end
-  (*| EFirst  ex                  -> begin
+  | EFirst  ex                  -> begin
                                    match ex with 
                                    | EVal (VPair (e1, e2)) -> (env, e1)
                                    | _ as e                -> failwith (Printf.sprintf "%s" (string_of_exp e))
@@ -361,7 +373,7 @@ let rec step (env: (int * value) list) (e:exp) : (int * value) list * exp =
                                    match ex with 
                                    | EVal (VPair (e1, e2)) -> (env, e2)
                                    | _ as e                -> failwith (Printf.sprintf "%s" (string_of_exp e))
-                                   end *)
+                                   end
   | ERef ex                     -> if (not (exp_is_value ex)) then
                                       begin
                                         match (step env ex) with
@@ -397,7 +409,25 @@ let rec step (env: (int * value) list) (e:exp) : (int * value) list * exp =
                                       | VPtr l              -> (env, EVal (assoc l env))
                                       | _                   -> failwith (Printf.sprintf "Typechecking skipped ! near %s" (string_of_exp ex))
                                     end
-  | _ as e                      -> failwith (Printf.sprintf "%s" (string_of_exp e))
+  | ESequence (e1, e2)          -> if (not (exp_is_value e1)) then
+                                    begin
+                                      match (step env e1) with
+                                      | en, e               -> (en, ESequence (e, e2))
+                                    end
+                                   else (env, e2)
+  | EWhile (e1, e2, e3)         -> if (not (exp_is_value e1)) then
+                                    begin
+                                      match (step env e1) with 
+                                      | en, e               -> (en, EWhile (e, e2, e3))
+                                    end
+                                   else
+                                    begin
+                                      match (value_of_exp e1) with
+                                      | VLit (LBool true)   -> (env, ESequence(e3, EWhile (e2, e2, e3)))
+                                      | VLit (LBool false)  -> (env, EVal (VUnit))
+                                      | _ as v              -> failwith (Printf.sprintf "While loop bool neither true nor false, instead %s" (string_of_value v))
+                                    end
+  | _ as e                      -> failwith (Printf.sprintf "Step Fail. %s" (string_of_exp e))
 
 let evaluate (e:exp) : value =
   let rec eval (env: (int * value) list) (e':exp) : exp =
